@@ -2,6 +2,14 @@ import React from "react";
 import { AiOutlineSearch } from "react-icons/ai";
 import { WiHumidity } from "react-icons/wi";
 import { FaWind } from "react-icons/fa";
+import {
+  BsFillSunFill,
+  BsCloudyFill,
+  BsFillCloudRainFill,
+  BsCloudFog2Fill,
+} from "react-icons/bs";
+import { RiLoaderFill } from "react-icons/ri";
+import { TiWeatherPartlySunny } from "react-icons/ti";
 
 export const DisplayWeather = () => {
   return (
