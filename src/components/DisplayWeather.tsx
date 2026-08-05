@@ -89,6 +89,7 @@ export const DisplayWeather = () => {
       const { latitude, longitude } = position.coords;
       Promise.all([fetchCurrentWeather(latitude, longitude)]).then(
         ([currentWeather]) => {
+          setIsLoading(true);
           setWeatherData(currentWeather);
           console.log(currentWeather);
         },
@@ -105,7 +106,7 @@ export const DisplayWeather = () => {
           <AiOutlineSearch className="searchIcon" />
         </div>
       </div>
-      {weatherData && (
+      {weatherData && isLoading ? (
         <>
           <div className="weatherArea">
             <h1>{weatherData.name}</h1>
@@ -137,6 +138,11 @@ export const DisplayWeather = () => {
             </div>
           </div>
         </>
+      ) : (
+        <div className="loading">
+          <RiLoaderFill className="loadingIcon" />
+          <p>Loading</p>
+        </div>
       )}
     </div>
   );
