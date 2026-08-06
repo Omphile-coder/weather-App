@@ -40,14 +40,48 @@ export const DisplayWeather = () => {
     null,
   );
 
+  // for loading state
   const [isLoading, setIsLoading] = useState(false);
+  const [searchCity, setSearchCity] = useState<string>("");
 
+  // To fetch the current weather data based on latitude and longitude
   const fetchCurrentWeather = async (lat: number, lon: number) => {
     const url = `${api_endpoint}weather?lat=${lat}&lon=${lon}&appid=${api_key}&units=metric`;
     const response = await axios.get(url);
+
     return response.data;
   };
 
+  // To fetch the weather data based on the city name entered by the user
+  const fetchWeatherData = async (city: string) => {
+    try {
+      const url = `${api_endpoint}weather?q=${city}&appid=${api_key}&units=metric`;
+      const searchResponse = await axios.get(url);
+
+      const currentWeatherData: WeatherDataProps = searchResponse.data;
+      setIsLoading(true);
+      return { currentWeatherData };
+    } catch (error) {
+      console.error("Error fetching weather data:", error);
+      throw error;
+    }
+  };
+
+  // Handle the search functionality when the user clicks the search icon or presses enter
+  const handleSearch = async () => {
+    if (searchCity.trim() === "") {
+      return; // Do not perform search if the input is empty
+    }
+
+    try {
+      const { currentWeatherData } = await fetchWeatherData(searchCity);
+      setWeatherData(currentWeatherData);
+    } catch (error) {
+      console.error("Error fetching weather data:", error);
+    }
+  };
+
+  // Function to change the weather icon based on the weather condition
   const iconChanger = (weather: string) => {
     let iconElement: React.ReactNode;
     let iconColor: string;
@@ -84,6 +118,7 @@ export const DisplayWeather = () => {
     );
   };
 
+  // UseEffect to get the user's current location and fetch the weather data based on that location
   useEffect(() => {
     navigator.geolocation.getCurrentPosition((position) => {
       const { latitude, longitude } = position.coords;
@@ -95,17 +130,26 @@ export const DisplayWeather = () => {
         },
       );
     });
-  });
+  }, []);
 
+  // Render the component
   return (
     <div className="container">
+      {/* Search Area */}
       <div className="searchArea">
-        <input type="text" placeholder="Enter city name" />
+        <input
+          type="text"
+          placeholder="Enter city name"
+          value={searchCity}
+          onChange={(e) => setSearchCity(e.target.value)}
+        />
 
         <div className="searchCircle">
-          <AiOutlineSearch className="searchIcon" />
+          <AiOutlineSearch className="searchIcon" onClick={handleSearch} />
         </div>
       </div>
+
+      {/* Weather Information/Content */}
       {weatherData && isLoading ? (
         <>
           <div className="weatherArea">
