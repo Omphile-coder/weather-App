@@ -1,169 +1,376 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap");
 
-html{
-height: 100vh;
-background: linear-gradient(to right, #c7c7eb, #ccf2dd);
+* {
+  box-sizing: border-box;
 }
 
-.container {
-margin: 0 auto;
-margin-top: 50px;
-background-color: #ffffff7d;
-border-radius: 12px;
-padding: 1rem;
-position: absolute;
-top: 50%;
-left: 50%;
-transform: translate(-50%, -50%);
-box-shadow: 0 10px 15px rgb(0 0 0 / 20%);
-box-sizing: border-box;
-color: rgba(0, 0, 0, 0.8);
-background-blend-mode: overlay;
-justify-content: space-between;
-align-items: center;
-flex-direction: column;
-position: absolute;
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
 }
 
-
-.searchArea {
-margin-top: 20px;
-display: flex;
-justify-content: space-evenly;
-align-items: center;
-width: 100%;
+body {
+  font-family: "Inter", sans-serif;
+  color: #ffffff;
 }
 
+/* =========================
+   Themes
+   ========================= */
 
-.searchArea > input {
-outline: none;
-border: none;
-border: 1px solid grey;
-padding: 8px;
-border-radius: 20px;
-text-align: center;
-width: 80%;
-background: transparent;
-}
-.searchCircle {
-border: 1px solid grey;
-width: 30px; /* Adjust the width of the circle as needed */
-height: 30px; /* Ensure the height matches the width for a perfect circle */
-border-radius: 50%;
-display: flex;
-justify-content: center;
-align-items: center;
-cursor: pointer;
-
-
-> .searchIcon {
-font-size: 20px;
-color: grey;
-}
+.theme-blue {
+  background: linear-gradient(to bottom, #2b5876, #4e4376);
 }
 
-
-.weatherArea {
-display: flex;
-align-items: center;
-flex-direction: column;
-margin: 30px 0;
-
-
-> .icon {
-font-size: 9rem;
-
-
-/* DO LATER NOT WHEN CREATING UI */
+.theme-dark {
+  background: linear-gradient(to bottom, #141e30, #243b55);
 }
 
+/* =========================
+   Main Layout
+   ========================= */
 
-> h1 {
-font-size: 3rem;
-
-
-font-family: "Bebas Neue", sans-serif;
+.app-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
+/* =========================
+   Search & Settings
+   ========================= */
 
-> span {
-margin-bottom: 10px;
-font-family: "Inter", sans-serif;
+.controls-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
-
-> h2 {
-font-size: 2rem;
-font-family: "Inter", sans-serif;
-font-weight: 400;
-}
-}
-
-
-.bottomInfoArea {
-display: flex;
-align-items: center;
-justify-content: space-around;
-font-family: "Josefin Sans", sans-serif;
-margin: 10px;
-background: linear-gradient(
-90deg,
-rgba(243, 255, 253, 1) 0%,
-rgba(253, 255, 232, 1) 100%
-);
-border-radius: 12px;
-padding: 10px;
-}
-.humidityLevel,
-.wind {
-display: flex;
-align-items: center;
-margin: 0 20px;
-
-
-> .humidIcon {
-font-size: 3rem;
-}
+.search-area {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  max-width: 400px;
+  padding: 8px 15px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
 }
 
-
-.windIcon {
-font-size: 2rem;
-margin-right: 10px;
+.search-area input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: white;
+  font-size: 1rem;
 }
 
+.search-area input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.search-icon {
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+
+.settings-group {
+  display: flex;
+  gap: 10px;
+}
+
+.settings-group button {
+  margin: 0;
+  padding: 8px 15px;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.settings-group button:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* =========================
+   Saved Locations
+   ========================= */
+
+.saved-locations {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  margin-bottom: 20px;
+  padding-bottom: 5px;
+}
+
+.saved-locations button {
+  padding: 5px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 15px;
+  color: white;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* =========================
+   Current Weather
+   ========================= */
+
+.main-header {
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.main-header h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 400;
+}
+
+.main-header h2 {
+  margin: 5px 0;
+  font-size: 4rem;
+  font-weight: 300;
+}
+
+.main-header p {
+  margin: 0;
+  font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+/* =========================
+   Dashboard
+   ========================= */
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 15px;
+}
+
+/* =========================
+   Reusable Weather Widget
+   ========================= */
+
+.widget {
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.widget-header {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 15px;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+/* =========================
+   Hourly Forecast
+   ========================= */
+
+.hourly-scroll {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+}
+
+.hourly-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-width: 50px;
+}
+
+.hourly-icon {
+  font-size: 1.5rem;
+}
+
+/* =========================
+   Weather Icons
+   ========================= */
+
+.weather-icon {
+  font-size: inherit;
+}
+
+.weather-icon.rain {
+  color: #a0b2c6;
+}
+
+.weather-icon.clear {
+  color: #ffc436;
+}
+
+.weather-icon.clouds {
+  color: #ffffff;
+}
+
+.weather-icon.mist {
+  color: #d1e8ff;
+}
+
+.weather-icon.partly-cloudy {
+  color: #ffc436;
+}
+
+/* =========================
+   Daily Forecast
+   ========================= */
+
+.daily-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.daily-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.daily-item:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.daily-day {
+  width: 40px;
+}
+
+.daily-icon {
+  font-size: 1.2rem;
+}
+
+.daily-temps {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  width: 100px;
+}
+
+.muted-text {
+  opacity: 0.6;
+}
+
+.temperature-bar {
+  align-self: center;
+  width: 40px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+}
+
+/* =========================
+   Weather Details
+   ========================= */
+
+.detail-widgets {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 15px;
+}
+
+.detail-value {
+  margin: 10px 0;
+  font-size: 2rem;
+  font-weight: 500;
+}
+
+.detail-description {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.wind-direction {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* =========================
+   Loading
+   ========================= */
 
 .loading {
-height: 400px;
-width: 300px;
-display: flex;
-flex-direction: column;
-justify-content: center;
-align-items: center;
-z-index: 9999;
-
-
-.loadingIcon {
-font-size: 3rem;
-
-animation: spin 2s linear infinite;
-}
-p {
-font-size: 22px;
-margin-top: 10px;
-font-family: "Josefin Sans", sans-serif;
-}
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 50vh;
 }
 
+.loading-icon {
+  font-size: 3rem;
+  animation: spin 1s linear infinite;
+}
 
-/* For the loading animation */
 @keyframes spin {
-from {
-transform: rotate(0deg);
-}
-to {
-transform: rotate(360deg);
-}
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
+/* =========================
+   Responsive Design
+   ========================= */
 
+@media (min-width: 480px) {
+  .detail-widgets {
+    grid-template-columns: 1fr 1fr;
+  }
+}
 
+@media (min-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .span-two {
+    grid-column: span 2;
+  }
+}
+
+@media (min-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: 2fr 1fr;
+  }
+
+  .span-two {
+    grid-column: span 1;
+  }
+}
+
+@media (min-width: 1200px) {
+  .app-container {
+    padding: 40px;
+  }
+}

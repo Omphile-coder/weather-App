@@ -1,188 +1,198 @@
-import React, { useEffect, useState } from "react";
-import { AiOutlineSearch } from "react-icons/ai";
-import { WiHumidity } from "react-icons/wi";
-import { FaWind } from "react-icons/fa";
-import {
-  BsFillSunFill,
-  BsCloudyFill,
-  BsFillCloudRainFill,
-  BsCloudFog2Fill,
-} from "react-icons/bs";
-import { RiLoaderFill } from "react-icons/ri";
-import { TiWeatherPartlySunny } from "react-icons/ti";
+import { useEffect, useState } from "react";
 import axios from "axios";
-import "./App.css";
 
-interface WeatherDataProps {
-  name: string;
-  main: {
-    temp: number;
-    humidity: number;
-  };
-  sys: {
-    country: string;
-  };
-  weather: {
-    main: string;
-    description: string;
-  }[];
+import { SearchBar } from "./SearchBar";
+import { SettingsControls } from "./SettingsControls";
+import { SavedLocations } from "./SavedLocations";
+import { CurrentWeather } from "./CurrentWeather";
+import { HourlyForecast } from "./HourlyForecast";
+import { DailyForecast } from "./DailyForecast";
+import { WeatherDetails } from "./WeatherDetails";
+import { LoadingWeather } from "./LoadingWeather";
+import type {
+  ForecastItem,
+  WeatherData,
+  DailyForecast as DailyForecastItem,
+} from "./types";
 
-  wind: {
-    speed: number;
-  };
-}
+const API_KEY = "0cc86d16bf572f78cdc96c096c7627e5";
+const API_ENDPOINT = "https://api.openweathermap.org/data/2.5/";
 
 export const DisplayWeather = () => {
-  const api_key = "0cc86d16bf572f78cdc96c096c7627e5";
-  const api_endpoint = "https://api.openweathermap.org/data/2.5/";
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const [forecastList, setForecastList] = useState<ForecastItem[]>([]);
+  const [savedLocations, setSavedLocations] = useState<string[]>([]);
+  const [searchCity, setSearchCity] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [weatherData, setWeatherData] = React.useState<WeatherDataProps | null>(
-    null,
-  );
+  const [isMetric, setIsMetric] = useState(true);
+  const [theme, setTheme] = useState<"blue" | "dark">("blue");
 
-  // for loading state
-  const [isLoading, setIsLoading] = useState(false);
-  const [searchCity, setSearchCity] = useState<string>("");
+  const saveLocationToLocal = (city: string) => {
+    const updatedLocations = [...new Set([...savedLocations, city])];
 
-  // To fetch the current weather data based on latitude and longitude
-  const fetchCurrentWeather = async (lat: number, lon: number) => {
-    const url = `${api_endpoint}weather?lat=${lat}&lon=${lon}&appid=${api_key}&units=metric`;
-    const response = await axios.get(url);
-
-    return response.data;
+    setSavedLocations(updatedLocations);
+    localStorage.setItem("weatherLocations", JSON.stringify(updatedLocations));
   };
 
-  // To fetch the weather data based on the city name entered by the user
-  const fetchWeatherData = async (city: string) => {
-    try {
-      const url = `${api_endpoint}weather?q=${city}&appid=${api_key}&units=metric`;
-      const searchResponse = await axios.get(url);
+  const fetchAllWeatherData = async (query: string, isCoords = false) => {
+    setIsLoading(true);
 
-      const currentWeatherData: WeatherDataProps = searchResponse.data;
-      setIsLoading(true);
-      return { currentWeatherData };
-    } catch (error) {
-      console.error("Error fetching weather data:", error);
-      throw error;
-    }
-  };
-
-  // Handle the search functionality when the user clicks the search icon or presses enter
-  const handleSearch = async () => {
-    if (searchCity.trim() === "") {
-      return; // Do not perform search if the input is empty
-    }
+    const units = isMetric ? "metric" : "imperial";
 
     try {
-      const { currentWeatherData } = await fetchWeatherData(searchCity);
-      setWeatherData(currentWeatherData);
+      const currentUrl = isCoords
+        ? `${API_ENDPOINT}weather?${query}&appid=${API_KEY}&units=${units}`
+        : `${API_ENDPOINT}weather?q=${query}&appid=${API_KEY}&units=${units}`;
+
+      const forecastUrl = isCoords
+        ? `${API_ENDPOINT}forecast?${query}&appid=${API_KEY}&units=${units}`
+        : `${API_ENDPOINT}forecast?q=${query}&appid=${API_KEY}&units=${units}`;
+
+      const [currentRes, forecastRes] = await Promise.all([
+        axios.get(currentUrl),
+        axios.get(forecastUrl),
+      ]);
+
+      setWeatherData(currentRes.data);
+      setForecastList(forecastRes.data.list);
+
+      if (!isCoords) {
+        saveLocationToLocal(currentRes.data.name);
+      }
     } catch (error) {
       console.error("Error fetching weather data:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Function to change the weather icon based on the weather condition
-  const iconChanger = (weather: string) => {
-    let iconElement: React.ReactNode;
-    let iconColor: string;
-
-    switch (weather) {
-      case "Rain":
-        iconElement = <BsFillCloudRainFill />;
-        iconColor = "#272829";
-        break;
-
-      case "Clear":
-        iconElement = <BsFillSunFill />;
-        iconColor = "#FFC436";
-        break;
-
-      case "Clouds":
-        iconElement = <BsCloudyFill />;
-        iconColor = "#102C57";
-        break;
-
-      case "Mist":
-        iconElement = <BsCloudFog2Fill />;
-        iconColor = "#279EFF";
-        break;
-      default:
-        iconElement = <TiWeatherPartlySunny />;
-        iconColor = "#7B2869";
-    }
-
-    return (
-      <span className="icon" style={{ color: iconColor }}>
-        {iconElement}
-      </span>
-    );
-  };
-
-  // UseEffect to get the user's current location and fetch the weather data based on that location
   useEffect(() => {
-    navigator.geolocation.getCurrentPosition((position) => {
-      const { latitude, longitude } = position.coords;
-      Promise.all([fetchCurrentWeather(latitude, longitude)]).then(
-        ([currentWeather]) => {
-          setIsLoading(true);
-          setWeatherData(currentWeather);
-          console.log(currentWeather);
-        },
-      );
-    });
+    const locations = localStorage.getItem("weatherLocations");
+
+    if (locations) {
+      setSavedLocations(JSON.parse(locations));
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        fetchAllWeatherData(`lat=${latitude}&lon=${longitude}`, true);
+      },
+      (error) => {
+        console.error("Geolocation denied or failed.", error);
+        fetchAllWeatherData("Polokwane");
+      },
+    );
   }, []);
 
-  // Render the component
+  useEffect(() => {
+    document.body.className = `theme-${theme}`;
+  }, [theme]);
+
+  useEffect(() => {
+    if (weatherData) {
+      fetchAllWeatherData(`q=${weatherData.name}`);
+    }
+  }, [isMetric]);
+
+  const handleSearch = () => {
+    if (searchCity.trim() === "") {
+      return;
+    }
+
+    fetchAllWeatherData(searchCity);
+    setSearchCity("");
+  };
+
+  const formatTime = (unixTime: number) =>
+    new Date(unixTime * 1000).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+  const getDayName = (dateString: string) =>
+    new Date(dateString).toLocaleDateString("en-US", {
+      weekday: "short",
+    });
+
+  const processDailyForecast = (list: ForecastItem[]): DailyForecastItem[] => {
+    const dailyData: Record<string, DailyForecastItem> = {};
+
+    list.forEach((item) => {
+      const date = item.dt_txt.split(" ")[0];
+
+      if (!dailyData[date]) {
+        dailyData[date] = {
+          min: item.main.temp_min,
+          max: item.main.temp_max,
+          weather: item.weather[0].main,
+          dt_txt: item.dt_txt,
+        };
+        return;
+      }
+
+      if (item.main.temp_min < dailyData[date].min) {
+        dailyData[date].min = item.main.temp_min;
+      }
+
+      if (item.main.temp_max > dailyData[date].max) {
+        dailyData[date].max = item.main.temp_max;
+      }
+
+      if (item.dt_txt.includes("12:00:00")) {
+        dailyData[date].weather = item.weather[0].main;
+      }
+    });
+
+    return Object.values(dailyData).slice(0, 5);
+  };
+
+  const dailyForecast = processDailyForecast(forecastList);
+
   return (
-    <div className="container">
-      {/* Search Area */}
-      <div className="searchArea">
-        <input
-          type="text"
-          placeholder="Enter city name"
+    <main className="app-container">
+      <div className="controls-header">
+        <SearchBar
           value={searchCity}
-          onChange={(e) => setSearchCity(e.target.value)}
+          onChange={setSearchCity}
+          onSearch={handleSearch}
         />
 
-        <div className="searchCircle">
-          <AiOutlineSearch className="searchIcon" onClick={handleSearch} />
-        </div>
+        <SettingsControls
+          isMetric={isMetric}
+          theme={theme}
+          onToggleUnit={() => setIsMetric((current) => !current)}
+          onToggleTheme={() =>
+            setTheme((current) => (current === "blue" ? "dark" : "blue"))
+          }
+        />
       </div>
 
-      {/* Weather Information/Content */}
-      {weatherData && isLoading ? (
+      <SavedLocations
+        locations={savedLocations}
+        onSelectLocation={(city) => fetchAllWeatherData(`q=${city}`)}
+      />
+
+      {isLoading || !weatherData ? (
+        <LoadingWeather />
+      ) : (
         <>
-          <div className="weatherArea">
-            <h1>{weatherData.name}</h1>
-            <span>{weatherData.sys.country}</span>
+          <CurrentWeather weather={weatherData} />
 
-            <div className="icon">
-              {iconChanger(weatherData.weather[0].main)}
-            </div>
+          <div className="dashboard-grid">
+            <HourlyForecast forecast={forecastList} />
 
-            <h1>{weatherData.main.temp}&deg;C</h1>
-            <h2>{weatherData.weather[0].main}</h2>
-          </div>
+            <DailyForecast forecast={dailyForecast} getDayName={getDayName} />
 
-          <div className="bottomInfoArea">
-            <div className="humidityLevel">
-              <WiHumidity className="windIcon " />
-
-              <div className="humidInfo">
-                <h1>{weatherData.main.humidity}%</h1>
-                <p>Humidity</p>
-              </div>
-            </div>
-            <div className="wind">
-              <FaWind className="windIcon" />
-              <div className="humidInfo">
-                <h1>{weatherData.wind.speed}km/h</h1>
-                <p>Wind Speed</p>
-              </div>
-            </div>
+            <WeatherDetails
+              weather={weatherData}
+              isMetric={isMetric}
+              formatTime={formatTime}
+            />
           </div>
         </>
       )}
-    </div>
+    </main>
   );
 };
