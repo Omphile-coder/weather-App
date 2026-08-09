@@ -1,16 +1,8 @@
-import { useState } from "react";
-
-import "./App.css";
 import { DisplayWeather } from "./components/DisplayWeather";
+import "./index.css";
 
 function App() {
-  const [count, setCount] = useState(0);
-
-  return (
-    <>
-      <DisplayWeather />
-    </>
-  );
+  return <DisplayWeather />;
 }
 
 export default App;
