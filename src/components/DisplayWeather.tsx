@@ -11,14 +11,14 @@ import {
 import { RiLoaderFill } from "react-icons/ri";
 import { TiWeatherPartlySunny } from "react-icons/ti";
 import axios from "axios";
+import "./App.css";
+
 interface WeatherDataProps {
   name: string;
-
   main: {
     temp: number;
     humidity: number;
   };
-
   sys: {
     country: string;
   };
@@ -182,11 +182,6 @@ export const DisplayWeather = () => {
             </div>
           </div>
         </>
-      ) : (
-        <div className="loading">
-          <RiLoaderFill className="loadingIcon" />
-          <p>Loading</p>
-        </div>
       )}
     </div>
   );
