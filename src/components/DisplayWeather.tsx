@@ -9,6 +9,7 @@ import { HourlyForecast } from "./HourlyForecast";
 import { DailyForecast } from "./DailyForecast";
 import { WeatherDetails } from "./WeatherDetails";
 import { LoadingWeather } from "./LoadingWeather";
+import { AiOutlineMenu } from "react-icons/ai";
 import type {
   ForecastItem,
   WeatherData,
@@ -27,7 +28,9 @@ export const DisplayWeather = () => {
 
   const [isMetric, setIsMetric] = useState(true);
   const [theme, setTheme] = useState<"blue" | "dark">("blue");
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  // Function to save a location to local storage
   const saveLocationToLocal = (city: string) => {
     const updatedLocations = [...new Set([...savedLocations, city])];
 
@@ -35,6 +38,16 @@ export const DisplayWeather = () => {
     localStorage.setItem("weatherLocations", JSON.stringify(updatedLocations));
   };
 
+  // Function to delete a location from local storage
+  const deleteLocationFromLocal = (cityToRemove: string) => {
+    const updatedLocations = savedLocations.filter(
+      (city) => city !== cityToRemove,
+    );
+    setSavedLocations(updatedLocations);
+    localStorage.setItem("weatherLocations", JSON.stringify(updatedLocations));
+  };
+
+  // Function to fetch both current weather and forecast data
   const fetchAllWeatherData = async (query: string, isCoords = false) => {
     setIsLoading(true);
 
@@ -67,6 +80,7 @@ export const DisplayWeather = () => {
     }
   };
 
+  // Fetch weather data on initial load and when the unit changes
   useEffect(() => {
     const locations = localStorage.getItem("weatherLocations");
 
@@ -86,13 +100,15 @@ export const DisplayWeather = () => {
     );
   }, []);
 
+  // Update the theme class on the body element whenever the theme changes
   useEffect(() => {
     document.body.className = `theme-${theme}`;
   }, [theme]);
 
+  // Refetch weather data when the unit changes
   useEffect(() => {
     if (weatherData) {
-      fetchAllWeatherData(`q=${weatherData.name}`);
+      fetchAllWeatherData(weatherData.name);
     }
   }, [isMetric]);
 
@@ -153,6 +169,10 @@ export const DisplayWeather = () => {
   return (
     <main className="app-container">
       <div className="controls-header">
+        <button className="hamburger-btn" onClick={() => setIsMenuOpen(true)}>
+          <AiOutlineMenu />
+        </button>
+
         <SearchBar
           value={searchCity}
           onChange={setSearchCity}
@@ -171,14 +191,17 @@ export const DisplayWeather = () => {
 
       <SavedLocations
         locations={savedLocations}
-        onSelectLocation={(city) => fetchAllWeatherData(`q=${city}`)}
+        isOpen={isMenuOpen}
+        onClose={() => setIsMenuOpen(false)}
+        onSelectLocation={(city) => fetchAllWeatherData(city)}
+        onDeleteLocation={deleteLocationFromLocal}
       />
 
       {isLoading || !weatherData ? (
         <LoadingWeather />
       ) : (
         <>
-          <CurrentWeather weather={weatherData} />
+          <CurrentWeather weather={weatherData} isMetric={isMetric} />
 
           <div className="dashboard-grid">
             <HourlyForecast forecast={forecastList} />

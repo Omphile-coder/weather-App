@@ -18,7 +18,7 @@ export const SettingsControls = ({
       </button>
 
       <button onClick={onToggleTheme}>
-        {theme === "blue" ? "Dark Theme" : "Blue Theme"}
+        {theme === "blue" ? "Dark Theme" : "Light Theme"}
       </button>
     </div>
   );

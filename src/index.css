@@ -103,22 +103,160 @@ body {
    Saved Locations
    ========================= */
 
-.saved-locations {
+/* =========================
+   Hamburger Menu Button
+   ========================= */
+
+.hamburger-btn {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
   display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  margin-bottom: 20px;
-  padding-bottom: 5px;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  transition: background 0.3s;
 }
 
-.saved-locations button {
-  padding: 5px 12px;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 15px;
+.hamburger-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* =========================
+   Saved Locations Drawer
+   ========================= */
+
+.menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 40;
+  backdrop-filter: blur(3px);
+}
+
+.saved-locations-drawer {
+  position: fixed;
+  top: 0;
+  left: -320px; /* Hidden off-screen to start */
+  width: 320px;
+  max-width: 80vw;
+  height: 100vh;
+  background: rgba(20, 30, 48, 0.95);
+  box-shadow: 4px 0 25px rgba(0, 0, 0, 0.5);
+  z-index: 50;
+  transition: left 0.3s ease-in-out;
+  padding: 25px 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Theme adaptation for drawer */
+body.theme-blue .saved-locations-drawer {
+  background: rgba(43, 88, 118, 0.95);
+}
+
+.saved-locations-drawer.open {
+  left: 0; /* Slides in */
+}
+
+.drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding-bottom: 15px;
+}
+
+.drawer-header h3 {
+  margin: 0;
+  font-weight: 500;
+  font-size: 1.2rem;
+  letter-spacing: 1px;
+}
+
+.close-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 50%;
   color: white;
+  font-size: 1.2rem;
   cursor: pointer;
-  white-space: nowrap;
+  display: flex;
+  padding: 8px;
+  transition: background 0.3s;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.no-locations {
+  opacity: 0.7;
+  text-align: center;
+  margin-top: 30px;
+}
+
+.locations-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.location-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 10px 15px;
+  transition: background 0.3s, transform 0.2s;
+}
+
+.location-item:hover {
+  background: rgba(0, 0, 0, 0.3);
+  transform: translateX(3px);
+}
+
+.location-name {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 1.05rem;
+  cursor: pointer;
+  flex: 1;
+  text-align: left;
+  padding: 5px 0;
+}
+
+.delete-btn {
+  background: transparent;
+  border: none;
+  color: #ff6b6b;
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.delete-btn:hover {
+  background: rgba(255, 107, 107, 0.15);
+  color: #ff4c4c;
 }
 
 /* =========================
@@ -192,6 +330,7 @@ body {
   gap: 20px;
   overflow-x: auto;
   padding-bottom: 10px;
+  font-size:2rem;
 }
 
 .hourly-item {
@@ -203,7 +342,7 @@ body {
 }
 
 .hourly-icon {
-  font-size: 1.5rem;
+  font-size: 5rem;
 }
 
 /* =========================
