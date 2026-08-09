@@ -38,7 +38,7 @@ export const SavedLocations = ({
                   className="location-name"
                   onClick={() => {
                     onSelectLocation(city);
-                    onClose(); // Close the menu after selecting a city
+                    onClose();
                   }}
                 >
                   {city}

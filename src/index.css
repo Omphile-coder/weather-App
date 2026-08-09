@@ -14,6 +14,13 @@ body {
 body {
   font-family: "Inter", sans-serif;
   color: #ffffff;
+  transition: background-image 1s ease-in-out, background-color 1s ease-in-out;
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+
+
 }
 
 /* =========================
@@ -21,11 +28,11 @@ body {
    ========================= */
 
 .theme-blue {
-  background: linear-gradient(to bottom, #2b5876, #4e4376);
+  background-image: url("./assets/light.png");
 }
 
 .theme-dark {
-  background: linear-gradient(to bottom, #141e30, #243b55);
+  background-image: url("./assets/dark.png");
 }
 
 /* =========================
@@ -143,7 +150,7 @@ body {
 .saved-locations-drawer {
   position: fixed;
   top: 0;
-  left: -320px; /* Hidden off-screen to start */
+  left: -320px; 
   width: 320px;
   max-width: 80vw;
   height: 100vh;
@@ -207,7 +214,6 @@ body.theme-blue .saved-locations-drawer {
   list-style: none;
   padding: 0;
   margin: 0;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 12px;

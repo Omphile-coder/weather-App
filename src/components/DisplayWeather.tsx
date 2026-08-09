@@ -48,8 +48,14 @@ export const DisplayWeather = () => {
   };
 
   // Function to fetch both current weather and forecast data
-  const fetchAllWeatherData = async (query: string, isCoords = false) => {
-    setIsLoading(true);
+  const fetchAllWeatherData = async (
+    query: string,
+    isCoords = false,
+    showLoading = true,
+  ) => {
+    if (showLoading) {
+      setIsLoading(true);
+    }
 
     const units = isMetric ? "metric" : "imperial";
 
@@ -108,7 +114,8 @@ export const DisplayWeather = () => {
   // Refetch weather data when the unit changes
   useEffect(() => {
     if (weatherData) {
-      fetchAllWeatherData(weatherData.name);
+      // Pass 'false' for isCoords, and 'false' for showLoading
+      fetchAllWeatherData(weatherData.name, false, false);
     }
   }, [isMetric]);
 
