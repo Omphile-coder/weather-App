@@ -1,4 +1,5 @@
 import { AiOutlineClose, AiOutlineDelete } from "react-icons/ai";
+import { IoIosClose } from "react-icons/io";
 
 interface SavedLocationsProps {
   locations: string[];
@@ -49,7 +50,7 @@ export const SavedLocations = ({
                   title={`Delete ${city}`}
                 >
                   {/* <AiOutlineDelete /> */}
-                  &times;
+                  <IoIosClose />
                 </button>
               </li>
             ))}
