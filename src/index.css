@@ -23,9 +23,9 @@ body {
 
 }
 
-/* =========================
+/*
    Themes
-   ========================= */
+   */
 
 .theme-blue {
   background-image: url("./assets/light.png");
@@ -35,9 +35,9 @@ body {
   background-image: url("./assets/dark.png");
 }
 
-/* =========================
+/*
    Main Layout
-   ========================= */
+   */
 
 .app-container {
   max-width: 1200px;
@@ -45,9 +45,9 @@ body {
   padding: 20px;
 }
 
-/* =========================
+/*
    Search & Settings
-   ========================= */
+   */
 
 .controls-header {
   display: flex;
@@ -111,13 +111,13 @@ body {
 
 
 
-/* =========================
+/*
    Saved Locations
-   ========================= */
+   */
 
-/* =========================
+/*
    Hamburger Menu Button
-   ========================= */
+   */
 
 .hamburger-btn {
   background: rgba(0, 0, 0, 0.2);
@@ -137,9 +137,9 @@ body {
   background: rgba(255, 255, 255, 0.1);
 }
 
-/* =========================
+/* 
    Saved Locations Drawer
-   ========================= */
+    */
 
 .menu-overlay {
   position: fixed;
@@ -271,9 +271,9 @@ body.theme-blue .saved-locations-drawer {
   color: #ff4c4c;
 }
 
-/* =========================
+/* 
    Current Weather
-   ========================= */
+    */
 
 .main-header {
   margin-bottom: 40px;
@@ -298,9 +298,9 @@ body.theme-blue .saved-locations-drawer {
   opacity: 0.9;
 }
 
-/* =========================
+/* 
    Dashboard
-   ========================= */
+  */
 
 .dashboard-grid {
   display: grid;
@@ -308,9 +308,9 @@ body.theme-blue .saved-locations-drawer {
   gap: 15px;
 }
 
-/* =========================
+/*
    Reusable Weather Widget
-   ========================= */
+  */
 
 .widget {
   padding: 20px;
@@ -333,9 +333,9 @@ body.theme-blue .saved-locations-drawer {
   opacity: 0.7;
 }
 
-/* =========================
+/*
    Hourly Forecast
-   ========================= */
+   */
 
 .hourly-scroll {
   display: flex;
@@ -357,9 +357,9 @@ body.theme-blue .saved-locations-drawer {
   font-size: 5rem;
 }
 
-/* =========================
+/* 
    Weather Icons
-   ========================= */
+  */
 
 .weather-icon {
   font-size: inherit;
@@ -385,9 +385,9 @@ body.theme-blue .saved-locations-drawer {
   color: #ffc436;
 }
 
-/* =========================
+/* 
    Daily Forecast
-   ========================= */
+  */
 
 .daily-list {
   display: flex;
@@ -435,9 +435,9 @@ body.theme-blue .saved-locations-drawer {
   border-radius:2px;
 }
 
-/* =========================
+/* 
    Weather Details
-   ========================= */
+    */
 
 .detail-widgets {
   display: grid;
@@ -463,9 +463,9 @@ body.theme-blue .saved-locations-drawer {
   gap: 5px;
 }
 
-/* =========================
+/*
    Loading
-   ========================= */
+   */
 
 .loading {
   display: flex;
@@ -490,9 +490,9 @@ body.theme-blue .saved-locations-drawer {
   }
 }
 
-/* =========================
+/*
    Responsive Design
-   ========================= */
+  */
 
 @media (min-width: 480px) {
   .detail-widgets {
