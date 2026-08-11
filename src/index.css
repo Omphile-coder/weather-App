@@ -86,6 +86,23 @@ body {
   font-size: 1.2rem;
 }
 
+.add-location-btn{
+  padding: 8px 15px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.3s ease, transform 0.2s ease;
+  backdrop-filter: blur(5px);
+}
+
+.add-location-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
 .settings-group {
   display: flex;
   gap: 10px;
@@ -518,6 +535,10 @@ body.theme-blue .saved-locations-drawer {
   .span-two {
     grid-column: span 1;
   }
+
+   /* .weather-summary {
+    grid-column:2 ;
+  } */
 }
 
 @media (min-width: 1200px) {

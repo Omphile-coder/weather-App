@@ -16,6 +16,7 @@ import type {
   WeatherData,
   DailyForecast as DailyForecastItem,
 } from "./types";
+import { WeatherSummary } from "./WeatherSummary";
 
 const API_KEY = "0cc86d16bf572f78cdc96c096c7627e5";
 const API_ENDPOINT = "https://api.openweathermap.org/data/2.5/";
@@ -25,6 +26,7 @@ export const DisplayWeather = () => {
   const [forecastList, setForecastList] = useState<ForecastItem[]>([]);
   const [savedLocations, setSavedLocations] = useState<string[]>([]);
   const [searchCity, setSearchCity] = useState("");
+  const [showAddButton, setShowAddButton] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   const [isMetric, setIsMetric] = useState(true);
@@ -78,7 +80,7 @@ export const DisplayWeather = () => {
       setForecastList(forecastRes.data.list);
 
       if (!isCoords) {
-        saveLocationToLocal(currentRes.data.name);
+        setShowAddButton(true);
       }
     } catch (error) {
       console.error("Error fetching weather data:", error);
@@ -188,6 +190,20 @@ export const DisplayWeather = () => {
           onSearch={handleSearch}
         />
 
+        {/*Add location button after a user has entered the a location   */}
+        {showAddButton && weatherData && (
+          <button
+            className="add-location-btn"
+            onClick={() => {
+              saveLocationToLocal(weatherData.name);
+              setShowAddButton(false);
+              setIsMenuOpen(true);
+            }}
+          >
+            +Add
+          </button>
+        )}
+
         <SettingsControls
           isMetric={isMetric}
           theme={theme}
@@ -216,6 +232,8 @@ export const DisplayWeather = () => {
             <HourlyForecast forecast={forecastList} />
 
             <DailyForecast forecast={dailyForecast} getDayName={getDayName} />
+
+            {/* <WeatherSummary weather={weatherData} isMetric={isMetric} /> */}
 
             <WeatherDetails
               weather={weatherData}
