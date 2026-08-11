@@ -10,6 +10,7 @@ import { DailyForecast } from "./DailyForecast";
 import { WeatherDetails } from "./WeatherDetails";
 import { LoadingWeather } from "./LoadingWeather";
 import { AiOutlineMenu } from "react-icons/ai";
+import { TbLayoutSidebarLeftExpand } from "react-icons/tb";
 import type {
   ForecastItem,
   WeatherData,
@@ -177,7 +178,8 @@ export const DisplayWeather = () => {
     <main className="app-container">
       <div className="controls-header">
         <button className="hamburger-btn" onClick={() => setIsMenuOpen(true)}>
-          <AiOutlineMenu />
+          {/* <AiOutlineMenu /> */}
+          <TbLayoutSidebarLeftExpand />
         </button>
 
         <SearchBar
