@@ -48,7 +48,8 @@ export const SavedLocations = ({
                   onClick={() => onDeleteLocation(city)}
                   title={`Delete ${city}`}
                 >
-                  <AiOutlineDelete />
+                  {/* <AiOutlineDelete /> */}
+                  &times;
                 </button>
               </li>
             ))}
