@@ -79,6 +79,9 @@ export const DisplayWeather = () => {
       setWeatherData(currentRes.data);
       setForecastList(forecastRes.data.list);
 
+      console.log("Weather data:", currentRes.data);
+      console.log("ForecastLIst :", currentRes.data);
+
       localStorage.setItem(
         "cachedWeather",
         JSON.stringify({
