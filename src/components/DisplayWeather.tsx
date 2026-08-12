@@ -79,6 +79,15 @@ export const DisplayWeather = () => {
       setWeatherData(currentRes.data);
       setForecastList(forecastRes.data.list);
 
+      localStorage.setItem(
+        "cachedWeather",
+        JSON.stringify({
+          weather: currentRes.data,
+          forecast: forecastRes.data.list,
+          timestamp: Date.now(),
+        }),
+      );
+
       if (!isCoords) {
         setShowAddButton(true);
       }
@@ -87,6 +96,19 @@ export const DisplayWeather = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const loadCachedWeather = () => {
+    const cached = localStorage.getItem("cachedWeather");
+
+    if (!cached) {
+      return false;
+    }
+
+    const data = JSON.parse(cached);
+
+    setWeatherData(data.weather);
+    setForecastList(data.forecast);
   };
 
   // Fetch weather data on initial load and when the unit changes
@@ -121,6 +143,30 @@ export const DisplayWeather = () => {
       fetchAllWeatherData(weatherData.name, false, false);
     }
   }, [isMetric]);
+
+  useEffect(() => {
+    const handleOffline = () => {
+      console.log("Internet connection lost");
+
+      loadCachedWeather();
+
+      //Toaster will be here
+    };
+
+    const handleOnline = () => {
+      console.log("Internet connection restored");
+
+      //another toaster to show user is back online
+    };
+
+    window.addEventListener("offline", handleOffline);
+    window.addEventListener("online", handleOnline);
+
+    return () => {
+      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("online", handleOnline);
+    };
+  }, []);
 
   const handleSearch = () => {
     if (searchCity.trim() === "") {
