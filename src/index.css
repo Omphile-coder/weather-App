@@ -12,7 +12,7 @@ body {
 }
 
 body {
-  font-family: "Inter", sans-serif;
+  font-family: "Canva Sans","Inter", sans-serif;
   color: #ffffff;
   transition: background-image 1s ease-in-out, background-color 1s ease-in-out;
   background-size: cover;
