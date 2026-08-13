@@ -11,12 +11,14 @@ import { WeatherDetails } from "./WeatherDetails";
 import { LoadingWeather } from "./LoadingWeather";
 import { AiOutlineMenu } from "react-icons/ai";
 import { TbLayoutSidebarLeftExpand } from "react-icons/tb";
+import lightThemeBg from "../assets/light.webp";
+import darkThemeBg from "../assets/dark.webp";
+import { MoonPhaseWidget } from "./MoonPhaseWidget";
 import type {
   ForecastItem,
   WeatherData,
   DailyForecast as DailyForecastItem,
 } from "./types";
-import { WeatherSummary } from "./WeatherSummary";
 
 const API_KEY = "0cc86d16bf572f78cdc96c096c7627e5";
 const API_ENDPOINT = "https://api.openweathermap.org/data/2.5/";
@@ -171,6 +173,18 @@ export const DisplayWeather = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const preloadImages = () => {
+      const lightImg = new window.Image();
+      lightImg.src = lightThemeBg;
+
+      const darkImg = new window.Image();
+      darkImg.src = darkThemeBg;
+    };
+
+    preloadImages();
+  }, []);
+
   const handleSearch = () => {
     if (searchCity.trim() === "") {
       return;
@@ -282,13 +296,12 @@ export const DisplayWeather = () => {
 
             <DailyForecast forecast={dailyForecast} getDayName={getDayName} />
 
-            {/* <WeatherSummary weather={weatherData} isMetric={isMetric} /> */}
-
             <WeatherDetails
               weather={weatherData}
               isMetric={isMetric}
               formatTime={formatTime}
             />
+            <MoonPhaseWidget />
           </div>
         </>
       )}

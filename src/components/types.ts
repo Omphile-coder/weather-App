@@ -20,6 +20,12 @@ export interface WeatherData {
     speed: number;
     deg: number;
   };
+
+  coord: {
+    lat: number;
+    lon: number;
+    
+  }
 }
 
 export interface ForecastItem {
