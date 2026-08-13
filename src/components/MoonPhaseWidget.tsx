@@ -17,13 +17,13 @@ export const MoonPhaseWidget = () => {
           </div>
 
           <div className="moon-stat-row">
-            <span className="stat-label">Next Moonrise</span>
-            <span className="stat-value"> 17:02</span>
+            <span className="stat-label">Moonset</span>
+            <span className="stat-value"> 18:40</span>
           </div>
 
           <div className="moon-stat-row">
             <span className="stat-label">Next Full Moon</span>
-            <span className="stat-value"> 16 DAYS</span>
+            <span className="stat-value"> 15 DAYS</span>
           </div>
         </div>
 
