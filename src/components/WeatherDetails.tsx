@@ -30,8 +30,6 @@ export const WeatherDetails = ({
   isMetric,
   formatTime,
 }: WeatherDetailsProps) => {
- 
-
   const feelsLikeMessage =
     weather.main.feels_like > weather.main.temp
       ? "Humidity is making it feel warmer."
@@ -147,8 +145,6 @@ export const WeatherDetails = ({
         </div>
       </WeatherWidget>
 
-     
-
       <WeatherWidget title="FEELS LIKE" icon={<FaThermometerHalf />}>
         <div className="detail-value">
           {Math.round(weather.main.feels_like)}&deg;
@@ -163,11 +159,7 @@ export const WeatherDetails = ({
         </p>
       </WeatherWidget>
 
-      <WeatherWidget
-        title="NEW MOON"
-        icon={<BsMoon />}
-        className="span-two moon-widget"
-      >
+      <WeatherWidget title="NEW MOON" icon={<BsMoon />} className="moon-widget">
         <div className="moon-content">
           <div className="moon-stats">
             <div className="moon-stat-row">
