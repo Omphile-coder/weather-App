@@ -13,7 +13,7 @@ import { AiOutlineMenu } from "react-icons/ai";
 import { TbLayoutSidebarLeftExpand } from "react-icons/tb";
 import lightThemeBg from "../assets/light.webp";
 import darkThemeBg from "../assets/dark.webp";
-import { MoonPhaseWidget } from "./MoonPhaseWidget";
+import { HumidityWidget } from "./HumidityWidget";
 import type {
   ForecastItem,
   WeatherData,
@@ -301,7 +301,7 @@ export const DisplayWeather = () => {
               isMetric={isMetric}
               formatTime={formatTime}
             />
-            <MoonPhaseWidget />
+            <HumidityWidget weather={weatherData} />
           </div>
         </>
       )}
