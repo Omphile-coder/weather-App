@@ -32,6 +32,7 @@ export interface ForecastItem {
   dt_txt: string;
   dt: number;
   main: {
+    feels_like: number;
     temp: number;
     temp_min: number;
     temp_max: number;

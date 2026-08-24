@@ -159,7 +159,7 @@ export const WeatherDetails = ({
         </p>
       </WeatherWidget>
 
-      <WeatherWidget title="NEW MOON" icon={<BsMoon />} className="moon-widget">
+      <WeatherWidget title={phaseName} icon={icon} className="moon-widget">
         <div className="moon-content">
           <div className="moon-stats">
             <div className="moon-stat-row">
@@ -178,9 +178,7 @@ export const WeatherDetails = ({
             </div>
           </div>
 
-          <div className="moon-image-container">
-            <div className="moon-placeholder"></div>
-          </div>
+          <div className="moon-image-container"></div>
         </div>
       </WeatherWidget>
     </div>

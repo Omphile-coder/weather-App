@@ -141,12 +141,12 @@ export const DisplayWeather = () => {
   }, [theme]);
 
   // Refetch weather data when the unit changes
-  useEffect(() => {
-    if (weatherData) {
-      // Pass 'false' for isCoords, and 'false' for showLoading
-      fetchAllWeatherData(weatherData.name, false, false);
-    }
-  }, [isMetric]);
+  // useEffect(() => {
+  //   if (weatherData) {
+  //     // Pass 'false' for isCoords, and 'false' for showLoading
+  //     fetchAllWeatherData(weatherData.name, false, false);
+  //   }
+  // }, [isMetric]);
 
   useEffect(() => {
     const handleOffline = () => {
@@ -188,6 +188,52 @@ export const DisplayWeather = () => {
 
     preloadImages();
   }, []);
+
+  const handleToggleUnit = () => {
+    const newIsMetric = !isMetric;
+    setIsMetric(newIsMetric);
+
+    // Math helpers for conversion
+    const convertTemp = (temp: number, toMetric: boolean) =>
+      toMetric ? ((temp - 32) * 5) / 9 : (temp * 9) / 5 + 32;
+
+    const convertWind = (speed: number, toMetric: boolean) =>
+      toMetric ? speed * 1.60934 : speed / 1.60934;
+
+    // Convert the current weather state
+    if (weatherData) {
+      setWeatherData({
+        ...weatherData,
+        main: {
+          ...weatherData.main,
+          temp: convertTemp(weatherData.main.temp, newIsMetric),
+          feels_like: convertTemp(weatherData.main.feels_like, newIsMetric),
+          temp_min: convertTemp(weatherData.main.temp_min, newIsMetric),
+          temp_max: convertTemp(weatherData.main.temp_max, newIsMetric),
+        },
+        wind: {
+          ...weatherData.wind,
+          speed: convertWind(weatherData.wind.speed, newIsMetric),
+        },
+      });
+    }
+
+    // Convert the 5-day / 3-hour forecast array
+    if (forecastList.length > 0) {
+      setForecastList(
+        forecastList.map((item) => ({
+          ...item,
+          main: {
+            ...item.main,
+            temp: convertTemp(item.main.temp, newIsMetric),
+            feels_like: convertTemp(item.main.feels_like, newIsMetric),
+            temp_min: convertTemp(item.main.temp_min, newIsMetric),
+            temp_max: convertTemp(item.main.temp_max, newIsMetric),
+          },
+        })),
+      );
+    }
+  };
 
   const handleSearch = () => {
     if (searchCity.trim() === "") {
@@ -257,7 +303,6 @@ export const DisplayWeather = () => {
           onSearch={handleSearch}
         />
 
-        {/*Add location button after a user has entered the a location   */}
         {weatherData && (
           <button
             className="add-location-btn"
@@ -274,7 +319,7 @@ export const DisplayWeather = () => {
         <SettingsControls
           isMetric={isMetric}
           theme={theme}
-          onToggleUnit={() => setIsMetric((current) => !current)}
+          onToggleUnit={handleToggleUnit}
           onToggleTheme={() =>
             setTheme((current) => (current === "blue" ? "dark" : "blue"))
           }
@@ -305,6 +350,7 @@ export const DisplayWeather = () => {
               isMetric={isMetric}
               formatTime={formatTime}
             />
+
             <HumidityWidget weather={weatherData} />
           </div>
         </>
