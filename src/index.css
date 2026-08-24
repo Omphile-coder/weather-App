@@ -325,6 +325,7 @@ body.theme-blue .saved-locations-drawer {
   display: grid;
   grid-template-columns: 1fr;
   gap: 15px;
+  align-items: start;
 }
 
 /*
@@ -339,6 +340,8 @@ body.theme-blue .saved-locations-drawer {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
 }
 
 .widget-header {
@@ -358,10 +361,13 @@ body.theme-blue .saved-locations-drawer {
 
 .hourly-scroll {
   display: flex;
+  justify-content: space-between;
   gap: 20px;
   overflow-x: auto;
   padding-bottom: 10px;
   font-size:1.1rem;
+  flex: 1;
+  align-items: center;
 }
 
 .hourly-item {
@@ -373,7 +379,7 @@ body.theme-blue .saved-locations-drawer {
 }
 
 .hourly-icon {
-  font-size: 5rem;
+  font-size: 3rem;
 }
 
 /* 
@@ -489,10 +495,13 @@ body.theme-blue .saved-locations-drawer {
   display: flex;
   flex-direction: column;
   height: 100%;
+  flex: 1;
+  justify-content: center;
+  gap: 20px;
 }
 
 .dew-point-text {
-  margin-top: auto; 
+
   display: flex;
   align-items: center;
   gap: 5px;

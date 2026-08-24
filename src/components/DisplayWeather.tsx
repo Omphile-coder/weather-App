@@ -28,7 +28,6 @@ export const DisplayWeather = () => {
   const [forecastList, setForecastList] = useState<ForecastItem[]>([]);
   const [savedLocations, setSavedLocations] = useState<string[]>([]);
   const [searchCity, setSearchCity] = useState("");
-  const [showAddButton, setShowAddButton] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   const [isMetric, setIsMetric] = useState(true);
@@ -92,10 +91,6 @@ export const DisplayWeather = () => {
           timestamp: Date.now(),
         }),
       );
-
-      if (!isCoords) {
-        setShowAddButton(true);
-      }
     } catch (error) {
       console.error("Error fetching weather data:", error);
     } finally {
@@ -254,16 +249,16 @@ export const DisplayWeather = () => {
         />
 
         {/*Add location button after a user has entered the a location   */}
-        {showAddButton && weatherData && (
+        {weatherData && (
           <button
             className="add-location-btn"
             onClick={() => {
               saveLocationToLocal(weatherData.name);
-              setShowAddButton(false);
+
               setIsMenuOpen(true);
             }}
           >
-            +Add
+            +Add Location
           </button>
         )}
 
