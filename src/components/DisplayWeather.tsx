@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-
+import toast from "react-hot-toast";
 import { SearchBar } from "./SearchBar";
 import { SettingsControls } from "./SettingsControls";
 import { SavedLocations } from "./SavedLocations";
@@ -99,16 +99,20 @@ export const DisplayWeather = () => {
   };
 
   const loadCachedWeather = () => {
-    const cached = localStorage.getItem("cachedWeather");
+    try {
+      const cached = localStorage.getItem("cachedWeather");
 
-    if (!cached) {
-      return false;
+      if (!cached) {
+        return false;
+      }
+
+      const data = JSON.parse(cached);
+
+      setWeatherData(data.weather);
+      setForecastList(data.forecast);
+    } catch (error) {
+      console.error("Failed to load cached weather data:", error);
     }
-
-    const data = JSON.parse(cached);
-
-    setWeatherData(data.weather);
-    setForecastList(data.forecast);
   };
 
   // Fetch weather data on initial load and when the unit changes
@@ -147,16 +151,21 @@ export const DisplayWeather = () => {
   useEffect(() => {
     const handleOffline = () => {
       console.log("Internet connection lost");
-
       loadCachedWeather();
 
-      //Toaster will be here
+      // Fires a toast with a red error icon
+      toast.error("You are offline. Showing cached data.", {
+        duration: 4000,
+      });
     };
 
     const handleOnline = () => {
       console.log("Internet connection restored");
 
-      //another toaster to show user is back online
+      // Fires a toast with a green success icon
+      toast.success("Back online! Connection restored.", {
+        duration: 3000,
+      });
     };
 
     window.addEventListener("offline", handleOffline);
