@@ -9,7 +9,6 @@ import { HourlyForecast } from "./HourlyForecast";
 import { DailyForecast } from "./DailyForecast";
 import { WeatherDetails } from "./WeatherDetails";
 import { LoadingWeather } from "./LoadingWeather";
-import { AiOutlineMenu } from "react-icons/ai";
 import { TbLayoutSidebarLeftExpand } from "react-icons/tb";
 import lightThemeBg from "../assets/light.webp";
 import darkThemeBg from "../assets/dark.webp";
@@ -20,7 +19,7 @@ import type {
   DailyForecast as DailyForecastItem,
 } from "./types";
 
-const API_KEY = "0cc86d16bf572f78cdc96c096c7627e5";
+const API_KEY = import.meta.env.VITE_API_URL;
 const API_ENDPOINT = "https://api.openweathermap.org/data/2.5/";
 
 export const DisplayWeather = () => {
@@ -139,14 +138,6 @@ export const DisplayWeather = () => {
   useEffect(() => {
     document.body.className = `theme-${theme}`;
   }, [theme]);
-
-  // Refetch weather data when the unit changes
-  // useEffect(() => {
-  //   if (weatherData) {
-  //     // Pass 'false' for isCoords, and 'false' for showLoading
-  //     fetchAllWeatherData(weatherData.name, false, false);
-  //   }
-  // }, [isMetric]);
 
   useEffect(() => {
     const handleOffline = () => {
@@ -293,7 +284,7 @@ export const DisplayWeather = () => {
     <main className="app-container">
       <div className="controls-header">
         <button className="hamburger-btn" onClick={() => setIsMenuOpen(true)}>
-          {/* <AiOutlineMenu /> */}
+          
           <TbLayoutSidebarLeftExpand />
         </button>
 
