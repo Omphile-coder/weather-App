@@ -1,328 +1,222 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { TbLayoutSidebarLeftExpand, TbPlus } from "react-icons/tb";
+import { TooltipButton } from "./TooltipButton";
 import { SearchBar } from "./SearchBar";
 import { SettingsControls } from "./SettingsControls";
 import { SavedLocations } from "./SavedLocations";
 import { CurrentWeather } from "./CurrentWeather";
 import { HourlyForecast } from "./HourlyForecast";
+import { fetchDetailedForecast } from "./detailedForecast";
 import { DailyForecast } from "./DailyForecast";
 import { WeatherDetails } from "./WeatherDetails";
+import { WeatherMap } from "./WeatherMap";
 import { LoadingWeather } from "./LoadingWeather";
-import { AiOutlineMenu } from "react-icons/ai";
-import { TbLayoutSidebarLeftExpand } from "react-icons/tb";
-import lightThemeBg from "../assets/light.webp";
-import darkThemeBg from "../assets/dark.webp";
-import { HumidityWidget } from "./HumidityWidget";
-import type {
-  ForecastItem,
-  WeatherData,
-  DailyForecast as DailyForecastItem,
-} from "./types";
+import type { DailyForecast as DailyForecastItem, ForecastItem, HourlyWeather, WeatherData } from "./types";
 
 const API_KEY = "0cc86d16bf572f78cdc96c096c7627e5";
 const API_ENDPOINT = "https://api.openweathermap.org/data/2.5/";
+const CACHE_KEY = "weatherDashboardMetric";
+const DEFAULT_CITY = "Polokwane";
 
+// Converts forecast timestamps to local dates so readings are grouped by the selected city's day.
+const localDay = (timestamp: number, offset: number) =>
+  new Date((timestamp + offset) * 1000).toISOString().slice(0, 10);
+
+// Groups OpenWeather readings into five daily summaries when the detailed daily feed is unavailable.
+function getDailyForecast(list: ForecastItem[], weather: WeatherData) {
+  const today = localDay(weather.dt, weather.timezone);
+  const days = new Map<string, DailyForecastItem>([
+    [today, {
+      day: today,
+      min: weather.main.temp_min,
+      max: weather.main.temp_max,
+      weather: weather.weather[0].main,
+    }],
+  ]);
+
+  for (const item of list) {
+    const day = localDay(item.dt, weather.timezone);
+    if (day < today) continue;
+    const previous = days.get(day);
+    const localHour = new Date((item.dt + weather.timezone) * 1000).getUTCHours();
+    days.set(day, {
+      day,
+      min: Math.min(previous?.min ?? Infinity, item.main.temp_min),
+      max: Math.max(previous?.max ?? -Infinity, item.main.temp_max),
+      weather: !previous || (day !== today && localHour >= 11 && localHour < 14)
+        ? item.weather[0].main
+        : previous.weather,
+    });
+  }
+
+  return Array.from(days.values()).slice(0, 5);
+}
+
+interface WeatherSnapshot {
+  weather: WeatherData;
+  forecast: ForecastItem[];
+  aqi?: number;
+  hourly?: HourlyWeather;
+  daily?: DailyForecastItem[];
+}
+
+// Restores cached weather or saved cities and supplies a default if local storage cannot be read.
+function readStorage<T>(key: string, fallback: T): T {
+  try {
+    return JSON.parse(localStorage.getItem(key) ?? "null") ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+const views = ["Forecast", "Details", "Map"] as const;
+
+// Coordinates weather requests, saved cities, and display settings for the dashboard panels.
 export const DisplayWeather = () => {
-  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
-  const [forecastList, setForecastList] = useState<ForecastItem[]>([]);
-  const [savedLocations, setSavedLocations] = useState<string[]>([]);
+  const [snapshot, setSnapshot] = useState(() => readStorage<WeatherSnapshot | null>(CACHE_KEY, null));
+  const [savedLocations, setSavedLocations] = useState(() => readStorage<string[]>("weatherLocations", []));
   const [searchCity, setSearchCity] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-
+  const [isLoading, setIsLoading] = useState(!snapshot);
   const [isMetric, setIsMetric] = useState(true);
   const [theme, setTheme] = useState<"blue" | "dark">("blue");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [view, setView] = useState<(typeof views)[number]>("Forecast");
+  const request = useRef<AbortController | null>(null);
+  const weather = snapshot?.weather;
 
-  // Function to save a location to local storage
-  const saveLocationToLocal = (city: string) => {
-    const updatedLocations = [...new Set([...savedLocations, city])];
-
-    setSavedLocations(updatedLocations);
-    localStorage.setItem("weatherLocations", JSON.stringify(updatedLocations));
+  // Keeps the saved-location drawer and the browser's stored list in sync.
+  const updateLocations = (locations: string[]) => {
+    setSavedLocations(locations);
+    localStorage.setItem("weatherLocations", JSON.stringify(locations));
   };
 
-  // Function to delete a location from local storage
-  const deleteLocationFromLocal = (cityToRemove: string) => {
-    const updatedLocations = savedLocations.filter(
-      (city) => city !== cityToRemove,
-    );
-    setSavedLocations(updatedLocations);
-    localStorage.setItem("weatherLocations", JSON.stringify(updatedLocations));
-  };
+  // Loads weather for a city or coordinates and cancels any older request.
+  // Shares results with the dashboard cards and caches them for the next visit.
+  const fetchWeather = useCallback(async (location: { q: string } | { lat: number; lon: number }) => {
+    request.current?.abort();
+    const controller = new AbortController();
+    request.current = controller;
+    setIsLoading(true);
 
-  // Function to fetch both current weather and forecast data
-  const fetchAllWeatherData = async (
-    query: string,
-    isCoords = false,
-    showLoading = true,
-  ) => {
-    if (showLoading) {
-      setIsLoading(true);
-    }
-
-    const units = isMetric ? "metric" : "imperial";
-
+    const params = { ...location, appid: API_KEY, units: "metric" };
+    const { signal } = controller;
     try {
-      const currentUrl = isCoords
-        ? `${API_ENDPOINT}weather?${query}&appid=${API_KEY}&units=${units}`
-        : `${API_ENDPOINT}weather?q=${query}&appid=${API_KEY}&units=${units}`;
+      const [current, forecast] = await Promise.all([
+        axios.get<WeatherData>(API_ENDPOINT + "weather", { params, signal, timeout: 10000 }),
+        axios.get<{ list: ForecastItem[] }>(API_ENDPOINT + "forecast", { params, signal, timeout: 10000 }),
+      ]);
+      if (signal.aborted) return;
 
-      const forecastUrl = isCoords
-        ? `${API_ENDPOINT}forecast?${query}&appid=${API_KEY}&units=${units}`
-        : `${API_ENDPOINT}forecast?q=${query}&appid=${API_KEY}&units=${units}`;
-
-      const [currentRes, forecastRes] = await Promise.all([
-        axios.get(currentUrl),
-        axios.get(forecastUrl),
+      const next: WeatherSnapshot = { weather: current.data, forecast: forecast.data.list };
+      setSnapshot(next);
+      setIsLoading(false);
+      const [air, detailed] = await Promise.all([
+        axios.get<{ list: { main: { aqi: number } }[] }>(
+          API_ENDPOINT + "air_pollution",
+          { params: { ...current.data.coord, appid: API_KEY }, signal, timeout: 6000 },
+        ).then(({ data }) => data.list[0]?.main.aqi).catch(() => undefined),
+        fetchDetailedForecast(current.data, signal).catch(() => undefined),
       ]);
 
-      setWeatherData(currentRes.data);
-      setForecastList(forecastRes.data.list);
-
-      console.log("Weather data:", currentRes.data);
-      console.log("ForecastLIst :", currentRes.data);
-
-      localStorage.setItem(
-        "cachedWeather",
-        JSON.stringify({
-          weather: currentRes.data,
-          forecast: forecastRes.data.list,
-          timestamp: Date.now(),
-        }),
-      );
-    } catch (error) {
-      console.error("Error fetching weather data:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const loadCachedWeather = () => {
-    try {
-      const cached = localStorage.getItem("cachedWeather");
-
-      if (!cached) {
-        return false;
+      if (!signal.aborted) {
+        const updated = { ...next, aqi: air, ...detailed };
+        setSnapshot(updated);
+        try {
+          localStorage.setItem(CACHE_KEY, JSON.stringify(updated));
+        } catch {
+          // The dashboard can still display fresh data when storage is unavailable.
+        }
       }
-
-      const data = JSON.parse(cached);
-
-      setWeatherData(data.weather);
-      setForecastList(data.forecast);
-    } catch (error) {
-      console.error("Failed to load cached weather data:", error);
+    } catch {
+      if (!signal.aborted) {
+        toast.error("Weather is unavailable for that location.");
+      }
+    } finally {
+      if (!signal.aborted) setIsLoading(false);
     }
-  };
-
-  // Fetch weather data on initial load and when the unit changes
-  useEffect(() => {
-    const locations = localStorage.getItem("weatherLocations");
-
-    if (locations) {
-      setSavedLocations(JSON.parse(locations));
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        fetchAllWeatherData(`lat=${latitude}&lon=${longitude}`, true);
-      },
-      (error) => {
-        console.error("Geolocation denied or failed.", error);
-        fetchAllWeatherData("Polokwane");
-      },
-    );
   }, []);
 
-  // Update the theme class on the body element whenever the theme changes
+  // Loads the initial location and listens for changes in connectivity.
+  useEffect(() => {
+    let active = true;
+    // Applies the geolocation result if the dashboard is still mounted and no search has started.
+    const loadInitial = (location: { q: string } | { lat: number; lon: number }) => {
+      if (active && !request.current) void fetchWeather(location);
+    };
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        ({ coords }) => loadInitial({ lat: coords.latitude, lon: coords.longitude }),
+        () => loadInitial({ q: DEFAULT_CITY }),
+        { timeout: 5000 },
+      );
+    } else {
+      queueMicrotask(() => loadInitial({ q: DEFAULT_CITY }));
+    }
+
+    // Tells the user that weather already on screen may be out of date.
+    const offline = () => toast.error("You are offline. Weather may be out of date.");
+    // Confirms that the browser has regained its network connection.
+    const online = () => toast.success("Back online");
+    window.addEventListener("offline", offline);
+    window.addEventListener("online", online);
+    // Cancels pending requests and removes browser listeners when the dashboard unmounts.
+    return () => {
+      active = false;
+      request.current?.abort();
+      request.current = null;
+      window.removeEventListener("offline", offline);
+      window.removeEventListener("online", online);
+    };
+  }, [fetchWeather]);
+
+  // Applies the selected theme class so the stylesheet can switch the background.
   useEffect(() => {
     document.body.className = `theme-${theme}`;
   }, [theme]);
 
-  // Refetch weather data when the unit changes
-  // useEffect(() => {
-  //   if (weatherData) {
-  //     // Pass 'false' for isCoords, and 'false' for showLoading
-  //     fetchAllWeatherData(weatherData.name, false, false);
-  //   }
-  // }, [isMetric]);
+  // Formats temperatures consistently across cards using the selected unit.
+  const temperature = (celsius: number) => `${Math.round(isMetric ? celsius : celsius * 9 / 5 + 32)}°`;
+  // Displays event times such as sunrise and sunset in the selected city's local time.
+  const formatTime = (timestamp: number) =>
+    new Date((timestamp + (weather?.timezone ?? 0)) * 1000).toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
+      timeZone: "UTC",
+    });
 
-  useEffect(() => {
-    const handleOffline = () => {
-      console.log("Internet connection lost");
-      loadCachedWeather();
-
-      // Fires a toast with a red error icon
-      toast.error("You are offline. Showing cached data.", {
-        duration: 4000,
-      });
-    };
-
-    const handleOnline = () => {
-      console.log("Internet connection restored");
-
-      // Fires a toast with a green success icon
-      toast.success("Back online! Connection restored.", {
-        duration: 3000,
-      });
-    };
-
-    window.addEventListener("offline", handleOffline);
-    window.addEventListener("online", handleOnline);
-
-    return () => {
-      window.removeEventListener("offline", handleOffline);
-      window.removeEventListener("online", handleOnline);
-    };
-  }, []);
-
-  useEffect(() => {
-    const preloadImages = () => {
-      const lightImg = new window.Image();
-      lightImg.src = lightThemeBg;
-
-      const darkImg = new window.Image();
-      darkImg.src = darkThemeBg;
-    };
-
-    preloadImages();
-  }, []);
-
-  const handleToggleUnit = () => {
-    const newIsMetric = !isMetric;
-    setIsMetric(newIsMetric);
-
-    // Math helpers for conversion
-    const convertTemp = (temp: number, toMetric: boolean) =>
-      toMetric ? ((temp - 32) * 5) / 9 : (temp * 9) / 5 + 32;
-
-    const convertWind = (speed: number, toMetric: boolean) =>
-      toMetric ? speed * 1.60934 : speed / 1.60934;
-
-    // Convert the current weather state
-    if (weatherData) {
-      setWeatherData({
-        ...weatherData,
-        main: {
-          ...weatherData.main,
-          temp: convertTemp(weatherData.main.temp, newIsMetric),
-          feels_like: convertTemp(weatherData.main.feels_like, newIsMetric),
-          temp_min: convertTemp(weatherData.main.temp_min, newIsMetric),
-          temp_max: convertTemp(weatherData.main.temp_max, newIsMetric),
-        },
-        wind: {
-          ...weatherData.wind,
-          speed: convertWind(weatherData.wind.speed, newIsMetric),
-        },
-      });
-    }
-
-    // Convert the 5-day / 3-hour forecast array
-    if (forecastList.length > 0) {
-      setForecastList(
-        forecastList.map((item) => ({
-          ...item,
-          main: {
-            ...item.main,
-            temp: convertTemp(item.main.temp, newIsMetric),
-            feels_like: convertTemp(item.main.feels_like, newIsMetric),
-            temp_min: convertTemp(item.main.temp_min, newIsMetric),
-            temp_max: convertTemp(item.main.temp_max, newIsMetric),
-          },
-        })),
-      );
-    }
-  };
-
+  // Submits the city entered in the search bar and clears the field.
   const handleSearch = () => {
-    if (searchCity.trim() === "") {
-      return;
-    }
-
-    fetchAllWeatherData(searchCity);
+    const q = searchCity.trim();
+    if (!q) return;
+    void fetchWeather({ q });
     setSearchCity("");
   };
 
-  const formatTime = (unixTime: number) =>
-    new Date(unixTime * 1000).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-
-  const getDayName = (dateString: string) =>
-    new Date(dateString).toLocaleDateString("en-US", {
-      weekday: "short",
-    });
-
-  const processDailyForecast = (list: ForecastItem[]): DailyForecastItem[] => {
-    const dailyData: Record<string, DailyForecastItem> = {};
-
-    list.forEach((item) => {
-      const date = item.dt_txt.split(" ")[0];
-
-      if (!dailyData[date]) {
-        dailyData[date] = {
-          min: item.main.temp_min,
-          max: item.main.temp_max,
-          weather: item.weather[0].main,
-          dt_txt: item.dt_txt,
-        };
-        return;
-      }
-
-      if (item.main.temp_min < dailyData[date].min) {
-        dailyData[date].min = item.main.temp_min;
-      }
-
-      if (item.main.temp_max > dailyData[date].max) {
-        dailyData[date].max = item.main.temp_max;
-      }
-
-      if (item.dt_txt.includes("12:00:00")) {
-        dailyData[date].weather = item.weather[0].main;
-      }
-    });
-
-    return Object.values(dailyData).slice(0, 5);
-  };
-
-  const dailyForecast = processDailyForecast(forecastList);
+  const dailyForecast = snapshot ? getDailyForecast(snapshot.forecast, snapshot.weather) : [];
 
   return (
     <main className="app-container">
       <div className="controls-header">
-        <button className="hamburger-btn" onClick={() => setIsMenuOpen(true)}>
-          {/* <AiOutlineMenu /> */}
+        <TooltipButton className="icon-button" tooltip="Open saved locations" aria-label="Open saved locations" aria-expanded={isMenuOpen} onClick={() => setIsMenuOpen(true)}>
           <TbLayoutSidebarLeftExpand />
-        </button>
-
-        <SearchBar
-          value={searchCity}
-          onChange={setSearchCity}
-          onSearch={handleSearch}
-        />
-
-        {weatherData && (
-          <button
-            className="add-location-btn"
-            onClick={() => {
-              saveLocationToLocal(weatherData.name);
-
-              setIsMenuOpen(true);
-            }}
-          >
-            +Add Location
-          </button>
+        </TooltipButton>
+        <SearchBar value={searchCity} onChange={setSearchCity} onSearch={handleSearch} />
+        {weather && (
+          <TooltipButton className="icon-button" tooltip={`Save ${weather.name}`} aria-label={`Save ${weather.name}`} onClick={() => {
+            updateLocations([...new Set([...savedLocations, weather.name])]);
+            setIsMenuOpen(true);
+          }}>
+            <TbPlus />
+          </TooltipButton>
         )}
-
         <SettingsControls
           isMetric={isMetric}
           theme={theme}
-          onToggleUnit={handleToggleUnit}
-          onToggleTheme={() =>
-            setTheme((current) => (current === "blue" ? "dark" : "blue"))
-          }
+          onToggleUnit={() => setIsMetric((metric) => !metric)}
+          onToggleTheme={() => setTheme((current) => current === "blue" ? "dark" : "blue")}
         />
       </div>
 
@@ -330,30 +224,38 @@ export const DisplayWeather = () => {
         locations={savedLocations}
         isOpen={isMenuOpen}
         onClose={() => setIsMenuOpen(false)}
-        onSelectLocation={(city) => fetchAllWeatherData(city)}
-        onDeleteLocation={deleteLocationFromLocal}
+        onSelectLocation={(q) => void fetchWeather({ q })}
+        onDeleteLocation={(city) => updateLocations(savedLocations.filter((location) => location !== city))}
       />
 
-      {isLoading || !weatherData ? (
-        <LoadingWeather />
-      ) : (
+      {snapshot && weather ? (
         <>
-          <CurrentWeather weather={weatherData} isMetric={isMetric} />
-
-          <div className="dashboard-grid">
-            <HourlyForecast forecast={forecastList} />
-
-            <DailyForecast forecast={dailyForecast} getDayName={getDayName} />
-
+          <CurrentWeather weather={weather} today={snapshot.daily?.[0] ?? dailyForecast[0]} temperature={temperature} isMetric={isMetric} />
+          <nav className="view-switch" aria-label="Weather panels">
+            {views.map((name) => (
+              <TooltipButton key={name} tooltip={`Show ${name.toLowerCase()}`} aria-pressed={name === view} onClick={() => setView(name)}>{name}</TooltipButton>
+            ))}
+          </nav>
+          <div className="dashboard-grid" data-view={view} aria-busy={isLoading}>
+            <HourlyForecast key={`${weather.coord.lat},${weather.coord.lon},${weather.dt},${Boolean(snapshot.hourly)}`} forecast={snapshot.forecast} hourly={snapshot.hourly} weather={weather} temperature={temperature} />
+            <DailyForecast forecast={snapshot.daily?.slice(1) ?? dailyForecast} includesToday={!snapshot.daily} hasOpenMeteoData={Boolean(snapshot.hourly || snapshot.daily)} temperature={temperature} />
             <WeatherDetails
-              weather={weatherData}
+              weather={weather}
               isMetric={isMetric}
+              temperature={temperature}
               formatTime={formatTime}
+              aqi={snapshot.aqi}
             />
-
-            <HumidityWidget weather={weatherData} />
+            <WeatherMap key={`${weather.coord.lat},${weather.coord.lon}`} weather={weather} temperature={temperature(weather.main.temp)} apiKey={API_KEY} />
           </div>
         </>
+      ) : isLoading ? (
+        <LoadingWeather />
+      ) : (
+        <div className="loading" role="status">
+          <p>Weather is temporarily unavailable.</p>
+          <TooltipButton tooltip="Retry loading weather" onClick={() => void fetchWeather({ q: DEFAULT_CITY })}>Try again</TooltipButton>
+        </div>
       )}
     </main>
   );
