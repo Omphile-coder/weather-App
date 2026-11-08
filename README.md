@@ -52,4 +52,12 @@ This application relies on the OpenWeatherMap API (`https://api.openweathermap.o
 
 1. **Clone the repository:**
    ```bash
-   git clone <https://github.com/Omphile-coder/weather-App.git>
+   git clone https://github.com/Omphile-coder/weather-App.git
+
+2. **Install depedencies:**
+   ```bash
+      npm install
+
+3. **Start the development server:**
+   ```bash
+      npm run dev

@@ -15,7 +15,7 @@ import { WeatherMap } from "./WeatherMap";
 import { LoadingWeather } from "./LoadingWeather";
 import type { DailyForecast as DailyForecastItem, ForecastItem, HourlyWeather, WeatherData } from "./types";
 
-const API_KEY = "0cc86d16bf572f78cdc96c096c7627e5";
+const API_KEY = import.meta.env.VITE_API_URL;
 const API_ENDPOINT = "https://api.openweathermap.org/data/2.5/";
 const CACHE_KEY = "weatherDashboardMetric";
 const DEFAULT_CITY = "Polokwane";
