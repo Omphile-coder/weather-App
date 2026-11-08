@@ -31,7 +31,7 @@ button, input { font: inherit; }
 .loading .button-tooltip { inset: auto 0 calc(100% + 7px) auto; }
 
 button { color: inherit; cursor: pointer; }
-button:focus-visible, a:focus-visible, input:focus-visible {
+button:focus-visible, a:focus-visible, input:focus-visible, .search-area:focus-within {
   outline: 2px solid #a8e5ff;
   outline-offset: 3px;
 }
@@ -111,6 +111,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
 }
 
 .search-area input {
+  outline: none;
   width: 100%;
   min-width: 0;
   background: none;
