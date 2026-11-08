@@ -1,26 +1,24 @@
 import { WeatherWidget } from "./WeatherWidget";
 import { WiHumidity } from "react-icons/wi";
-import type { WeatherData } from "./types";
+import type { Temperature, WeatherData } from "./types";
 
 interface HumidityWidgetProps {
   weather: WeatherData;
+  temperature: Temperature;
 }
 
-export const HumidityWidget = ({ weather }: HumidityWidgetProps) => {
-  const dewPoint = Math.round(
-    weather.main.temp - (100 - weather.main.humidity) / 5,
-  );
+// Shows relative humidity and calculates the dew point for the weather details panel.
+export const HumidityWidget = ({ weather, temperature }: HumidityWidgetProps) => {
+  const { temp, humidity } = weather.main;
+  const gamma = Math.log(humidity / 100) + (17.62 * temp) / (243.12 + temp);
+  const dewPoint = (243.12 * gamma) / (17.62 - gamma);
 
   return (
-    <WeatherWidget title="HUMIDITY" icon={<WiHumidity />}>
-      <div className="humidity-widget">
-        <div className="detail-value">{weather.main.humidity}%</div>
-
-        <div className="dew-point-text">
-          <WiHumidity className="humiIcon" size={20} />
-          The dew point is {dewPoint}&deg; right now.
-        </div>
-      </div>
+    <WeatherWidget title="Humidity" icon={<WiHumidity />}>
+      <div className="detail-value">{humidity}%</div>
+      <p className="detail-description">
+        {Number.isFinite(dewPoint) ? `Dew point ${temperature(dewPoint)}` : "Dew point unavailable"}
+      </p>
     </WeatherWidget>
   );
 };
