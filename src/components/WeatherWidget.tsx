@@ -7,6 +7,7 @@ interface WeatherWidgetProps {
   className?: string;
 }
 
+// Provides a shared card layout for weather details, with a heading, icon, and content area.
 export const WeatherWidget = ({
   title,
   icon,
@@ -15,10 +16,10 @@ export const WeatherWidget = ({
 }: WeatherWidgetProps) => {
   return (
     <section className={`widget ${className}`}>
-      <div className="widget-header">
+      <h2 className="widget-header">
         {icon}
         <span>{title}</span>
-      </div>
+      </h2>
       {children}
     </section>
   );
