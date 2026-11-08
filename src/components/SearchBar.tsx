@@ -1,4 +1,5 @@
-import { AiOutlineSearch } from "react-icons/ai";
+import { FiSearch } from "react-icons/fi";
+import { TooltipButton } from "./TooltipButton";
 
 interface SearchBarProps {
   value: string;
@@ -6,23 +7,19 @@ interface SearchBarProps {
   onSearch: () => void;
 }
 
-export const SearchBar = ({ value, onChange, onSearch }: SearchBarProps) => {
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter") {
-      onSearch();
-    }
-  };
-
-  return (
-    <div className="search-area">
-      <input
-        type="text"
-        placeholder="Search location..."
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        onKeyDown={handleKeyDown}
-      />
-      <AiOutlineSearch className="search-icon" onClick={onSearch} />
-    </div>
-  );
-};
+// Displays the city search form and passes input changes and submissions to the dashboard.
+export const SearchBar = ({ value, onChange, onSearch }: SearchBarProps) => (
+  <form className="search-area" role="search" onSubmit={(event) => {
+    event.preventDefault();
+    onSearch();
+  }}>
+    <input
+      type="search"
+      aria-label="Search for a city"
+      placeholder="Search city"
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+    />
+    <TooltipButton type="submit" tooltip="Search for a city" aria-label="Search"><FiSearch /></TooltipButton>
+  </form>
+);
