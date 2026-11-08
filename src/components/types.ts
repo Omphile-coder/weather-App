@@ -1,5 +1,7 @@
 export interface WeatherData {
   name: string;
+  dt: number;
+  timezone: number;
   main: {
     temp: number;
     feels_like: number;
@@ -19,20 +21,18 @@ export interface WeatherData {
   wind: {
     speed: number;
     deg: number;
+    gust?: number;
   };
-
   coord: {
     lat: number;
     lon: number;
-    
-  }
+  };
 }
 
 export interface ForecastItem {
-  dt_txt: string;
   dt: number;
+  pop?: number;
   main: {
-    feels_like: number;
     temp: number;
     temp_min: number;
     temp_max: number;
@@ -43,8 +43,22 @@ export interface ForecastItem {
 }
 
 export interface DailyForecast {
+  day: string;
   min: number;
   max: number;
   weather: string;
-  dt_txt: string;
+}
+
+export type Temperature = (celsius: number) => string;
+
+export interface HourlyPeriod {
+  time: number;
+  temp: number;
+  condition: string;
+  pop?: number;
+}
+
+export interface HourlyWeather {
+  periods: HourlyPeriod[];
+  timezone: string;
 }
