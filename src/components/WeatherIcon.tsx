@@ -1,5 +1,7 @@
 import {
   BsCloudFog2Fill,
+  BsCloudLightningRainFill,
+  BsCloudSnowFill,
   BsCloudSunFill,
   BsCloudyFill,
   BsFillCloudRainFill,
@@ -10,10 +12,15 @@ interface WeatherIconProps {
   weather: string;
 }
 
+// Gives the hourly and daily cards a consistent icon for each weather condition.
 export const WeatherIcon = ({ weather }: WeatherIconProps) => {
   switch (weather) {
     case "Rain":
       return <BsFillCloudRainFill className="weather-icon rain" />;
+    case "Snow":
+      return <BsCloudSnowFill className="weather-icon rain" />;
+    case "Thunderstorm":
+      return <BsCloudLightningRainFill className="weather-icon rain" />;
     case "Clear":
       return <BsFillSunFill className="weather-icon clear" />;
     case "Clouds":
