@@ -1,5 +1,6 @@
-import { AiOutlineClose, AiOutlineDelete } from "react-icons/ai";
+import { AiOutlineClose } from "react-icons/ai";
 import { IoIosClose } from "react-icons/io";
+import { TooltipButton } from "./TooltipButton";
 
 interface SavedLocationsProps {
   locations: string[];
@@ -9,6 +10,7 @@ interface SavedLocationsProps {
   onDeleteLocation: (city: string) => void;
 }
 
+// Lists saved cities and calls the dashboard when the user selects or removes one.
 export const SavedLocations = ({
   locations,
   isOpen,
@@ -16,17 +18,19 @@ export const SavedLocations = ({
   onSelectLocation,
   onDeleteLocation,
 }: SavedLocationsProps) => {
+  if (!isOpen) return null;
+
   return (
     <>
-      {/* Overlay to close the menu when clicking outside */}
-      {isOpen && <div className="menu-overlay" onClick={onClose}></div>}
 
-      <div className={`saved-locations-drawer ${isOpen ? "open" : ""}`}>
+      <div className="menu-overlay" onClick={onClose} />
+
+      <div className="saved-locations-drawer">
         <div className="drawer-header">
           <h3>Saved Locations</h3>
-          <button className="close-btn" onClick={onClose}>
+          <TooltipButton className="close-btn" tooltip="Close saved locations" aria-label="Close saved locations" onClick={onClose}>
             <AiOutlineClose />
-          </button>
+          </TooltipButton>
         </div>
 
         {locations.length === 0 ? (
@@ -35,23 +39,25 @@ export const SavedLocations = ({
           <ul className="locations-list">
             {locations.map((city) => (
               <li key={city} className="location-item">
-                <button
+                <TooltipButton
                   className="location-name"
+                  tooltip={`Show weather for ${city}`}
                   onClick={() => {
                     onSelectLocation(city);
                     onClose();
                   }}
                 >
                   {city}
-                </button>
-                <button
+                </TooltipButton>
+                <TooltipButton
                   className="delete-btn"
                   onClick={() => onDeleteLocation(city)}
-                  title={`Delete ${city}`}
+                  tooltip={`Remove ${city}`}
+                  aria-label={`Remove ${city}`}
                 >
-                  {/* <AiOutlineDelete /> */}
+
                   <IoIosClose />
-                </button>
+                </TooltipButton>
               </li>
             ))}
           </ul>
