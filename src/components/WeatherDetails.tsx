@@ -1,185 +1,70 @@
-import { AiOutlineCompass } from "react-icons/ai";
-import { FaThermometerHalf, FaWind } from "react-icons/fa";
-import { FiSunrise } from "react-icons/fi";
-import { WeatherWidget } from "./WeatherWidget";
-import type { WeatherData } from "./types";
-import { BsMoon } from "react-icons/bs";
+import { FiSunrise, FiWind, FiThermometer, FiMoon } from "react-icons/fi";
+import { BsActivity } from "react-icons/bs";
 import * as SunCalc from "suncalc";
-import fullMoon from "../assets/full-moon.webp";
-import { WiMoonNew } from "react-icons/wi";
-import { WiMoonAltWaxingCrescent3 } from "react-icons/wi";
-import { WiMoonWaningCrescent4 } from "react-icons/wi";
-import { WiMoonFirstQuarter } from "react-icons/wi";
-import { WiMoonAltFirstQuarter } from "react-icons/wi";
-import { WiMoonAltWaxingGibbous1 } from "react-icons/wi";
-import { WiMoonWaxingGibbous1 } from "react-icons/wi";
-import { WiMoonWaningGibbous5 } from "react-icons/wi";
-import { WiMoonWaningGibbous6 } from "react-icons/wi";
-import { WiMoonAltWaningCrescent5 } from "react-icons/wi";
-import { WiMoonFull } from "react-icons/wi";
-import { useEffect, useState } from "react";
+import { HumidityWidget } from "./HumidityWidget";
+import { WeatherWidget } from "./WeatherWidget";
+import type { Temperature, WeatherData } from "./types";
 
 interface WeatherDetailsProps {
   weather: WeatherData;
   isMetric: boolean;
-  formatTime: (unixTime: number) => string;
+  temperature: Temperature;
+  formatTime: (timestamp: number) => string;
+  aqi?: number;
 }
 
-export const WeatherDetails = ({
-  weather,
-  isMetric,
-  formatTime,
-}: WeatherDetailsProps) => {
-  const feelsLikeMessage =
-    weather.main.feels_like > weather.main.temp
-      ? "Humidity is making it feel warmer."
-      : "Wind is making it feel cooler.";
+const airLevels = ["Good", "Fair", "Moderate", "Poor", "Very poor"];
+const moonPhases = [
+  "New moon", "Waxing crescent", "First quarter", "Waxing gibbous",
+  "Full moon", "Waning gibbous", "Last quarter", "Waning crescent",
+];
 
-  // Moon phase widget
-  const [phaseName, setPhaseName] = useState(" ");
-  const [icon, setIcon] = useState(<WiMoonNew />);
-  const [illumination, setIllumination] = useState("0%");
-  const [daysToFull, setDaysToFull] = useState("0 Days");
-  const [moonrise, setMoonrise] = useState("--:--");
-
-  useEffect(() => {
-    const today = new Date();
-    const lat = weather.coord.lat;
-    const lon = weather.coord.lon;
-
-    const moonIllumination = SunCalc.getMoonIllumination(today);
-    const phase = moonIllumination.phase;
-    const fraction = Math.round(moonIllumination.fraction * 10);
-
-    const moonTimes = SunCalc.getMoonTimes(today, lat, lon);
-
-    if (moonTimes.rise) {
-      setMoonrise(
-        moonTimes.rise.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      );
-    } else {
-      setMoonrise("No rise today");
-    }
-
-    let daysUntilFull = 0;
-
-    // Calculate Days to Full Moon
-    // A full moon occurs precisely at phase 0.5 in the 29.53 day lunar cycle
-    if (phase <= 0.5) {
-      daysUntilFull = Math.round((0.5 - phase) * 29.53);
-    } else {
-      daysUntilFull = Math.round((1.5 - phase) * 29.53);
-    }
-    const isSouthern = lat < 0;
-    let currentPhaseName = "";
-    let currentIcon = <WiMoonNew />;
-    if (phase === 0 || phase === 1) {
-      currentPhaseName = "NEW MOON";
-      currentIcon = <WiMoonNew />;
-    } else if (phase < 0.25) {
-      currentPhaseName = "WAXING CRESCENT";
-      currentIcon = isSouthern ? (
-        <WiMoonWaningCrescent4 />
-      ) : (
-        <WiMoonAltWaxingCrescent3 />
-      );
-    } else if (phase === 0.25) {
-      currentPhaseName = "FIRST QUARTER";
-      currentIcon = isSouthern ? (
-        <WiMoonFirstQuarter />
-      ) : (
-        <WiMoonAltFirstQuarter />
-      );
-    } else if (phase < 0.5) {
-      currentPhaseName = "WAXING GIBBOUS";
-      currentIcon = isSouthern ? (
-        <WiMoonAltWaxingGibbous1 />
-      ) : (
-        <WiMoonWaxingGibbous1 />
-      );
-    } else if (phase === 0.5) {
-      currentPhaseName = "FULL MOON";
-      currentIcon = <WiMoonFull />;
-    } else if (phase < 0.75) {
-      currentPhaseName = "WANING GIBBOUS";
-      currentIcon = isSouthern ? (
-        <WiMoonWaningGibbous5 />
-      ) : (
-        <WiMoonWaningGibbous6 />
-      );
-    } else if (phase === 0.75) {
-      currentPhaseName = "LAST QUARTER";
-      currentIcon = isSouthern ? (
-        <WiMoonAltFirstQuarter />
-      ) : (
-        <WiMoonFirstQuarter />
-      );
-    } else {
-      currentPhaseName = "WANING CRESCENT";
-      currentIcon = isSouthern ? (
-        <WiMoonAltWaningCrescent5 />
-      ) : (
-        <WiMoonAltWaxingCrescent3 />
-      );
-    }
-
-    setPhaseName(currentPhaseName);
-    setIcon(currentIcon);
-    setIllumination(`${fraction}%`);
-    setDaysToFull(`${daysUntilFull} DAYS`);
-  }, [weather]);
+// Groups air quality, wind, feels-like temperature, humidity, daylight, and moon phase into detail cards.
+export const WeatherDetails = ({ weather, isMetric, temperature, formatTime, aqi }: WeatherDetailsProps) => {
+  // Converts the API's wind readings to km/h or mph for the wind and gust labels.
+  const speedFactor = isMetric ? 3.6 : 2.23694;
+  const speed = (value: number) => `${Math.round(value * speedFactor)} ${isMetric ? "km/h" : "mph"}`;
+  const directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+  const direction = directions[Math.round(weather.wind.deg / 45) % directions.length];
+  const moon = SunCalc.getMoonIllumination(new Date(weather.dt * 1000));
+  const phase = moonPhases[Math.round(moon.phase * 8) % moonPhases.length];
+  const airLevel = aqi ? airLevels[aqi - 1] : undefined;
+  const feelsWarmer = Math.abs(weather.main.temp - weather.main.feels_like) < 1
+    ? "Close to actual temperature"
+    : weather.main.feels_like > weather.main.temp ? "Feels warmer" : "Feels cooler";
 
   return (
     <div className="detail-widgets">
-      <WeatherWidget title="WIND" icon={<FaWind />}>
-        <div className="detail-value">
-          {Math.round(weather.wind.speed)} {isMetric ? "km/h" : "mph"}
-        </div>
-
-        <div className="wind-direction">
-          <AiOutlineCompass />
-          {weather.wind.deg}&deg;
-        </div>
+      <WeatherWidget title="Air quality" icon={<BsActivity />}>
+        <div className="detail-value">{airLevel ?? "Unavailable"}</div>
+        {airLevel && (
+          <>
+            <p className="detail-description">OpenWeather AQI {aqi} / 5</p>
+            <div className="air-scale" aria-hidden="true">
+              <span style={{ left: `${(Number(aqi) - 0.5) * 20}%` }} />
+            </div>
+          </>
+        )}
       </WeatherWidget>
-
-      <WeatherWidget title="FEELS LIKE" icon={<FaThermometerHalf />}>
-        <div className="detail-value">
-          {Math.round(weather.main.feels_like)}&deg;
-        </div>
-        <p className="detail-description">{feelsLikeMessage}</p>
-      </WeatherWidget>
-
-      <WeatherWidget title="SUNRISE" icon={<FiSunrise />}>
-        <div className="detail-value">{formatTime(weather.sys.sunrise)}</div>
+      <WeatherWidget title="Wind" icon={<FiWind />}>
+        <div className="detail-value">{speed(weather.wind.speed)}</div>
         <p className="detail-description">
-          Sunset: {formatTime(weather.sys.sunset)}
+          {direction} {weather.wind.deg}°
+          {weather.wind.gust != null && ` · Gusts ${speed(weather.wind.gust)}`}
         </p>
       </WeatherWidget>
-
-      <WeatherWidget title={phaseName} icon={icon} className="moon-widget">
-        <div className="moon-content">
-          <div className="moon-stats">
-            <div className="moon-stat-row">
-              <span className="stat-label">Illumination</span>
-              <span className="stat-value">{illumination}</span>
-            </div>
-
-            <div className="moon-stat-row">
-              <span className="stat-label">Moonset</span>
-              <span className="stat-value"> {moonrise}</span>
-            </div>
-
-            <div className="moon-stat-row">
-              <span className="stat-label">Next Full Moon</span>
-              <span className="stat-value"> {daysToFull}</span>
-            </div>
-          </div>
-
-          <div className="moon-image-container"></div>
-        </div>
+      <WeatherWidget title="Feels like" icon={<FiThermometer />}>
+        <div className="detail-value">{temperature(weather.main.feels_like)}</div>
+        <p className="detail-description">{feelsWarmer}</p>
+      </WeatherWidget>
+      <HumidityWidget weather={weather} temperature={temperature} />
+      <WeatherWidget title="Sunset" icon={<FiSunrise />}>
+        <div className="detail-value">{formatTime(weather.sys.sunset)}</div>
+        <p className="detail-description">Sunrise {formatTime(weather.sys.sunrise)}</p>
+      </WeatherWidget>
+      <WeatherWidget title="Moon phase" icon={<FiMoon />}>
+        <div className="detail-value moon-phase">{phase}</div>
+        <p className="detail-description">{Math.round(moon.fraction * 100)}% illuminated</p>
       </WeatherWidget>
     </div>
   );
